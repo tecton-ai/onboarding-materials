@@ -11,6 +11,8 @@
 # MAGIC 5. Create and test a new feature
 # MAGIC 6. Add the new feature to a feature set and serve it in production
 # MAGIC 
+# MAGIC **This Tutorial should take about 90 minutes to complete**
+# MAGIC 
 # MAGIC At the end of this tutorial, you should expect to be generally proficient in most aspects of Tecton.
 # MAGIC 
 # MAGIC Helpful links (Click the blue Sign In button):
