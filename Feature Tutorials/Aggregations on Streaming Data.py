@@ -5,13 +5,16 @@
 # MAGIC #Stream Window Aggregate Feature View (SWAF) Tutorial
 # MAGIC 
 # MAGIC Tecton has 5 basic types of Feature Views:
-# MAGIC - Batch Feature View
-# MAGIC - Batch Window Aggregate Feature View
-# MAGIC - Stream Feature View
-# MAGIC - Stream Window Aggregate Feature View
-# MAGIC - OnDemand Feature View
+# MAGIC - [Batch Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/batch_feature_view.html)
+# MAGIC - [Batch Window Aggregate Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/batch_window_aggregate_feature_view.html)
+# MAGIC - [Stream Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/stream_feature_view.html)
+# MAGIC - [Stream Window Aggregate Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/stream_window_aggregate_feature_view.html)
+# MAGIC - [On-Demand Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/on_demand_feature_view.html)
 # MAGIC 
 # MAGIC In this tutorial we'll focus on **Stream Window Aggregate Feature View**
+# MAGIC 
+# MAGIC 
+# MAGIC **This tutorial should take about 20 minutes to complete**
 
 # COMMAND ----------
 
