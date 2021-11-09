@@ -1,28 +1,5 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 📚 Tecton Tutorial
-# MAGIC 
-# MAGIC In this tutorial notebook, you will:
-# MAGIC 
-# MAGIC 1. Get set up with a Tecton development environment
-# MAGIC 2. Understand the basics of Tecton
-# MAGIC 3. Fetch data from the Feature Store
-# MAGIC 4. Generate training data and inference data from a set of existing features
-# MAGIC 5. Create and test a new feature
-# MAGIC 6. Add the new feature to a feature set and serve it in production
-# MAGIC 
-# MAGIC **This Tutorial should take about 90 minutes to complete**
-# MAGIC 
-# MAGIC At the end of this tutorial, you should expect to be generally proficient in most aspects of Tecton.
-# MAGIC 
-# MAGIC Helpful links (Click the blue Sign In button):
-# MAGIC - Tecton Web UI: [your-cluster-name].tecton.ai
-# MAGIC - <a href="https://docs.tecton.ai/v2/" target="_blank">Tecton Docs</a>
-# MAGIC - <a href="https://s3-us-west-2.amazonaws.com/tecton.ai.public/documentation/tecton-py/index.html" target="_blank">Tecton Python SDK Docs</a>
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ## What is Tecton?
 # MAGIC 
 # MAGIC Tecton is a data platform for operational machine learning. It empowers data scientists and engineers to:

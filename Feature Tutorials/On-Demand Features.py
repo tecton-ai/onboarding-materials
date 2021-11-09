@@ -37,7 +37,7 @@
 # MAGIC ## How do they work
 # MAGIC 
 # MAGIC ### Writing On-Demand Features
-# MAGIC On-Demand Features are written in declaritive code just like all other features in Tecton, however there is one key difference: **on-demand feature views are written in Python (using Pandas primatives)**.  This tutorial will guide you through how they work.
+# MAGIC On-Demand Features are written in declaritive code just like all other features in Tecton, however there is one key difference: **on-demand feature views are written in Python (using Pandas primitives)**.  This tutorial will guide you through how they work.
 # MAGIC 
 # MAGIC ### At Inference Time
 # MAGIC At inference time, the transformation logic for on-demand feature are run directly on the Tecton-managed serving infrastructure. Tecton has developed an efficient method to quickly invoke python functions at serving time without inducing significant overhead. How this works:
@@ -214,7 +214,7 @@ display(fv.get_historical_features(spine, from_source=False).to_pandas())
 
 # COMMAND ----------
 
-feature_vector = fv.get_feature_vector({'user_id': 'C805277159'}, request_context_map={"amount": 5000})
+feature_vector = fv.get_online_features({'user_id': 'C805277159'}, request_data={"amount": 5000})
 display(feature_vector.to_pandas())
 
 # COMMAND ----------
