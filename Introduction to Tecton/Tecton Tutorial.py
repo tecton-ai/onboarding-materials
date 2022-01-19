@@ -295,7 +295,7 @@ pprint(response.to_dict())
 # MAGIC #### ✅Generate an API key in your CLI by running:
 # MAGIC 
 # MAGIC <pre>
-# MAGIC $ tecton create-api-key
+# MAGIC $ tecton api-key create
 # MAGIC </pre>
 
 # COMMAND ----------
