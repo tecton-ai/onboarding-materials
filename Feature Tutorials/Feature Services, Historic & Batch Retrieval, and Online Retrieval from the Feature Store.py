@@ -205,8 +205,8 @@ fraud_detection_feature_service = tecton.get_feature_service("fraud_detection_fe
 keys = {'user_id': 'C439568473'}
 request_data = {'amount': 1122.14}
 
-response = fraud_detection_feature_service.get_online_features(keys, request_data=request_data)
-pprint(response.to_dict())
+resp = fraud_detection_feature_service.get_online_features(keys, request_data=request_data)
+pprint(resp.to_dict())
 
 # COMMAND ----------
 
