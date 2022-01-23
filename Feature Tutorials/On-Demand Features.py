@@ -79,7 +79,7 @@ from datetime import datetime
 
 # COMMAND ----------
 
-def transaction_amount_is_higher_than_3_day_average(transaction_request: pandas.DataFrame, user_transaction_amount_metrics: pandas.DataFrame):
+def transaction_amount_is_higher_than_3_day_average(transaction_request: pd.DataFrame, user_transaction_amount_metrics: pd.DataFrame):
     import pandas as pd
 
     # This column is a feature in the 'user_transaction_amount_metrics' Feature View.
