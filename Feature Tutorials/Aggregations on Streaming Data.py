@@ -23,7 +23,7 @@
 # MAGIC ## What is a Stream Window Aggregate Feature View?
 # MAGIC In our experience, a huge portion of the features used for production ML models are simple time-window aggregations like:
 # MAGIC 
-# MAGIC * How many trasnactions has a user made in the last 30 minutes
+# MAGIC * How many transactions has a user made in the last 30 minutes
 # MAGIC * How many times has a product been purchased in the last day
 # MAGIC * How many orders have been placed at a restaurant in the last hour
 # MAGIC 
