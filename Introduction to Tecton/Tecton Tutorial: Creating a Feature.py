@@ -186,7 +186,7 @@ fv.run(start_time=start_time, end_time=end_time).to_pandas().head()
 # MAGIC 
 # MAGIC For these reasons, we recommend using Tecton’s built-in aggregations whenever possible.
 # MAGIC 
-# MAGIC Time-windowed aggregations can be specified in the Batch Feature View decorator using the `aggregations` and `aggregation_slide_period` parameters.
+# MAGIC Time-windowed aggregations can be specified in the Batch Feature View decorator using the `aggregations` and `aggregation_interval` parameters.
 # MAGIC 
 # MAGIC Tecton expects the provided SQL query to select the raw events (with timestamps) to be aggregated.
 # MAGIC 
