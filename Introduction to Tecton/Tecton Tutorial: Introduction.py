@@ -29,7 +29,7 @@ from datetime import datetime, timedelta
 # COMMAND ----------
 
 # Check out the data source in Snowflake
-ws = tecton.get_workspace('david-0-4-0-dogfood')
+ws = tecton.get_workspace('prod')
 ds = ws.get_data_source('transactions_stream')
 ds.summary()
 
@@ -62,8 +62,8 @@ fv = ws.get_feature_view('merchant_fraud_rate')
 start_time = datetime.utcnow()-timedelta(days=14)
 end_time = datetime.utcnow()
 
-features = fv.run(start_time=start_time, end_time=end_time).to_pandas()
-features.sort_values(by="is_fraud_mean_1d_1d", ascending=False).head(5)
+features = fv.run(start_time=start_time, end_time=end_time).to_spark()
+display(features.orderBy("is_fraud_mean_1d_1d", ascending=False))
 
 # COMMAND ----------
 
@@ -95,7 +95,14 @@ fs.summary()
 # COMMAND ----------
 
 # Preview the data directly
-transactions_query = '''
+yesterday = datetime.utcnow() - timedelta(days=1)
+
+# Data is partitioned by year, month, day
+partition_year = str(yesterday.year)
+partition_month = str(yesterday.month).zfill(2)
+partition_day = str(yesterday.day).zfill(2)
+
+transactions_query = f'''
 SELECT 
     merchant,
     user_id,
@@ -103,11 +110,12 @@ SELECT
     amt,
     is_fraud
 FROM 
-    demo_fraud_v2.transactions 
+    demo_fraud_v2.transactions
+WHERE partition_0 = '{partition_year}' and partition_1 = '{partition_month}' and partition_2 = '{partition_day}'
 ORDER BY TIMESTAMP DESC
 LIMIT 10000
 '''
-transactions = spark.sql(transactions_query)
+transactions = spark.sql(transactions_query).cache()
 display(transactions)
 
 # COMMAND ----------
@@ -122,8 +130,8 @@ display(transactions)
 
 # COMMAND ----------
 
-training_data = fs.get_historical_features(spine=transactions, timestamp_key="timestamp").to_pandas()
-training_data.head(10)
+training_data = fs.get_historical_features(spine=transactions, timestamp_key="timestamp").to_spark()
+display(training_data)
 
 # COMMAND ----------
 

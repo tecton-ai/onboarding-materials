@@ -166,12 +166,12 @@ display(feature_df)
 
 # COMMAND ----------
 
-YOUR_WORKSPACE_NAME ="david-0-4-0-dogfood"
+YOUR_WORKSPACE_NAME ="PUT_YOUR_WORKSPACE_NAME_HERE"
 
 ws = tecton.get_workspace(YOUR_WORKSPACE_NAME) # replace with your workspace name
 fv = ws.get_feature_view('user_last_transaction_amount')
 
-start_time = datetime.utcnow()-timedelta(days=30)
+start_time = datetime.utcnow()-timedelta(days=10)
 end_time = datetime.utcnow()
 
 fv.run(start_time=start_time, end_time=end_time).to_pandas().head()
