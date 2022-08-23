@@ -50,8 +50,9 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
+ws = tecton.get_workspace('david-0-4-0-dogfood')
 feature_service_name = "fraud_detection_feature_service"
-fraud_detection_feature_service = tecton.get_workspace('prod').get_feature_service(feature_service_name)
+fraud_detection_feature_service = ws.get_feature_service(feature_service_name)
 fraud_detection_feature_service.summary()
 
 # COMMAND ----------
@@ -59,17 +60,15 @@ fraud_detection_feature_service.summary()
 # 1. Fetching a Spark DataFrame of historical labeled transactions
 # 2. Renaming columns to match the expected join keys for the Feature Service
 # 3. Selecting the join keys, request data, event timestamp, and label
-training_events = tecton.get_workspace('prod')\
-                        .get_data_source("transactions_batch").get_dataframe().to_spark() \
-                        .withColumnRenamed("nameorig", "user_id") \
-                        .select("user_id", "amount", "timestamp", "isfraud") \
-                        .orderBy("timestamp", ascending=False) \
-                        .limit(100000).cache()
+training_events = ws.get_data_source("transactions_batch").get_dataframe().to_spark() \
+                        .filter("partition_0 == 2022").filter("partition_2 == 05") \
+                        .select("user_id", "merchant", "timestamp", "amt", "is_fraud") \
+                        .cache()
 display(training_events)
 
 # COMMAND ----------
 
-training_data = fraud_detection_feature_service.get_historical_features(spine=training_events, timestamp_key="timestamp").to_spark()
+training_data = fraud_detection_feature_service.get_historical_features(spine=training_events, timestamp_key="timestamp").to_spark().cache()
 display(training_data)
 
 # COMMAND ----------
@@ -83,7 +82,7 @@ display(training_data)
 
 # COMMAND ----------
 
-training_data_pd = training_data.drop("user_id", "timestamp", "amount").toPandas()
+training_data_pd = training_data.drop("user_id", "merchant", "timestamp", "amt").toPandas()
 
 # COMMAND ----------
 
@@ -93,8 +92,8 @@ training_data_pd = training_data.drop("user_id", "timestamp", "amount").toPandas
 
 # COMMAND ----------
 
-y = training_data_pd['isfraud']
-x = training_data_pd.drop('isfraud', axis=1).fillna(0)
+y = training_data_pd['is_fraud']
+x = training_data_pd.drop('is_fraud', axis=1).fillna(0)
 x
 
 # COMMAND ----------
@@ -173,7 +172,7 @@ with mlflow.start_run() as run:
 
 # COMMAND ----------
 
-model_url = 'https://tecton-production.cloud.databricks.com/model/example-fraud-model/1/invocations'
+model_url = 'https://tecton-production.cloud.databricks.com/model/0-4-0-dogfooding/1/invocations'
 my_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().getOrElse(None)
 
 # COMMAND ----------
@@ -193,7 +192,10 @@ def score_model(dataset):
   return response.json()
 
 amount=12345.0
-df = fraud_detection_feature_service.get_online_features(join_keys={'user_id': 'C1143917207'}, request_data={"amount": amount}).to_pandas().fillna(0)
+df = fraud_detection_feature_service.get_online_features(
+  join_keys={'user_id': 'user_131340471060', 'merchant': 'fraud_Schmitt Inc'},
+  request_data={"amt": amount}
+).to_pandas().fillna(0)
 
 prediction = score_model(df)
 

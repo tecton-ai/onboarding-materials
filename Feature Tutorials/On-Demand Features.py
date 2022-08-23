@@ -4,11 +4,9 @@
 # MAGIC 
 # MAGIC #On-Demand Feature Tutorial
 # MAGIC 
-# MAGIC Tecton has 5 basic types of Feature Views:
+# MAGIC Tecton has 3basic types of Feature Views:
 # MAGIC - [Batch Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/batch_feature_view.html)
-# MAGIC - [Batch Window Aggregate Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/batch_window_aggregate_feature_view.html)
 # MAGIC - [Stream Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/stream_feature_view.html)
-# MAGIC - [Stream Window Aggregate Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/stream_window_aggregate_feature_view.html)
 # MAGIC - [On-Demand Feature View](https://docs.tecton.ai/v2/overviews/framework/feature_views/on_demand_feature_view.html)
 # MAGIC 
 # MAGIC In this tutorial we'll focus on **On-Demand Feature Views**
@@ -79,22 +77,18 @@ from datetime import datetime
 
 # COMMAND ----------
 
-def transaction_amount_is_higher_than_3_day_average(transaction_request: pd.DataFrame, user_transaction_amount_metrics: pd.DataFrame):
-    import pandas as pd
-
+def transaction_amount_is_higher_than_3_day_average(transaction_request, user_transaction_amount_metrics):
     # This column is a feature in the 'user_transaction_amount_metrics' Feature View.
-    # The feature values are null if there are no transactions in the 24h window so here we fill the nulls with 0.
-    user_transaction_amount_metrics['amount_mean_72h_10m'] = user_transaction_amount_metrics['amount_mean_72h_10m'].fillna(0)
+    # The feature values are null if there are no transactions in the 3d window so here we fill the nulls with 0.
+    amount_mean = 0 if user_transaction_amount_metrics['amt_mean_3d_10m'] == None else user_transaction_amount_metrics['amt_mean_3d_10m']
+    return {'transaction_amount_is_higher_than_average': transaction_request['amt'] > amount_mean}
 
-    df = pd.DataFrame()
-    df['transaction_amount_is_higher_than_average'] = transaction_request['amount'] > user_transaction_amount_metrics['amount_mean_72h_10m']
-    return df
 
 # COMMAND ----------
 
-amount = pd.DataFrame({'amount': [1000]})
-historical_metrics = pd.DataFrame({'amount_mean_72h_10m': [750]})
-display(transaction_amount_is_higher_than_3_day_average(amount, historical_metrics))
+request = {'amt': 1000}
+historical_metrics = {'amt_mean_3d_10m': 750}
+print(transaction_amount_is_higher_than_3_day_average(request, historical_metrics))
 
 # COMMAND ----------
 
@@ -109,17 +103,15 @@ display(transaction_amount_is_higher_than_3_day_average(amount, historical_metri
 # MAGIC 
 # MAGIC ```python
 # MAGIC # Schema of the input to the OnDemandFeatureView
-# MAGIC request_schema = StructType()
-# MAGIC request_schema.add(StructField('amount', DoubleType()))
-# MAGIC transaction_request = RequestDataSource(request_schema=request_schema)
+# MAGIC request_schema = [Field('amt', Float64)]
+# MAGIC transaction_request = RequestSource(schema=request_schema)
 # MAGIC ```
 # MAGIC 
 # MAGIC ### Output Schema
 # MAGIC Tecton also expects you to specify the schema of the output of your transformation -- here the output is the 1/0 flag we described above, so the schema will look like this:
 # MAGIC ```py
 # MAGIC # Schema of the output feature value(s)
-# MAGIC output_schema = StructType()
-# MAGIC output_schema.add(StructField('transaction_amount_is_higher_than_average', BooleanType()))
+# MAGIC output_schema = [Field('transaction_amount_is_higher_than_average', Bool)]
 # MAGIC ```
 # MAGIC 
 # MAGIC ### On-Demand Feature View Decorator
@@ -127,12 +119,9 @@ display(transaction_amount_is_higher_than_3_day_average(amount, historical_metri
 # MAGIC 
 # MAGIC ```py
 # MAGIC @on_demand_feature_view(
-# MAGIC     inputs={
-# MAGIC         'transaction_request': Input(transaction_request),
-# MAGIC         'user_transaction_amount_metrics': Input(user_transaction_amount_metrics)
-# MAGIC     },
-# MAGIC     mode='pandas',
-# MAGIC     output_schema=output_schema,
+# MAGIC     sources=[transaction_request, user_transaction_amount_metrics],
+# MAGIC     mode='python',
+# MAGIC     schema=output_schema,
 # MAGIC     description='The transaction amount is higher than the 3 day average.'
 # MAGIC )
 # MAGIC ```
@@ -142,39 +131,25 @@ display(transaction_amount_is_higher_than_3_day_average(amount, historical_metri
 # MAGIC Here's the full feature definition:
 # MAGIC 
 # MAGIC ```py
-# MAGIC from tecton import RequestDataSource, on_demand_feature_view, Input
-# MAGIC from pyspark.sql.types import BooleanType, DoubleType, StructType, StructField
-# MAGIC from fraud.features.stream_window_aggregate_feature_views.user_transaction_amount_metrics import user_transaction_amount_metrics
-# MAGIC import pandas
+# MAGIC from tecton import RequestSource, on_demand_feature_view
+# MAGIC from tecton.types import String, Timestamp, Float64, Field, Bool
+# MAGIC from fraud.features.stream_features.user_transaction_amount_metrics import user_transaction_amount_metrics
 # MAGIC 
-# MAGIC # Schema of the input to the OnDemandFeatureView
-# MAGIC request_schema = StructType()
-# MAGIC request_schema.add(StructField('amount', DoubleType()))
-# MAGIC transaction_request = RequestDataSource(request_schema=request_schema)
-# MAGIC 
-# MAGIC # Schema of the output feature value(s)
-# MAGIC output_schema = StructType()
-# MAGIC output_schema.add(StructField('transaction_amount_is_higher_than_average', BooleanType()))
+# MAGIC request_schema = [Field('amt', Float64)]
+# MAGIC transaction_request = RequestSource(schema=request_schema)
+# MAGIC output_schema = [Field('transaction_amount_is_higher_than_average', Bool)]
 # MAGIC 
 # MAGIC @on_demand_feature_view(
-# MAGIC     inputs={
-# MAGIC         'transaction_request': Input(transaction_request),
-# MAGIC         'user_transaction_amount_metrics': Input(user_transaction_amount_metrics)
-# MAGIC     },
-# MAGIC     mode='pandas',
-# MAGIC     output_schema=output_schema,
+# MAGIC     sources=[transaction_request, user_transaction_amount_metrics],
+# MAGIC     mode='python',
+# MAGIC     schema=output_schema,
 # MAGIC     description='The transaction amount is higher than the 3 day average.'
 # MAGIC )
-# MAGIC def transaction_amount_is_higher_than_3_day_average(transaction_request: pandas.DataFrame, user_transaction_amount_metrics: pandas.DataFrame):
-# MAGIC     import pandas as pd
-# MAGIC 
+# MAGIC def transaction_amount_is_higher_than_3_day_average(transaction_request, user_transaction_amount_metrics):
 # MAGIC     # This column is a feature in the 'user_transaction_amount_metrics' Feature View.
-# MAGIC     # The feature values are null if there are no transactions in the 72h window so here we fill the nulls with 0.
-# MAGIC     user_transaction_amount_metrics['amount_mean_72h_10m'] = user_transaction_amount_metrics['amount_mean_72h_10m'].fillna(0)
-# MAGIC 
-# MAGIC     df = pd.DataFrame()
-# MAGIC     df['transaction_amount_is_higher_than_average'] = transaction_request['amount'] > user_transaction_amount_metrics['amount_mean_72h_10m']
-# MAGIC     return df
+# MAGIC     # The feature values are null if there are no transactions in the 3d window so here we fill the nulls with 0.
+# MAGIC     amount_mean = 0 if user_transaction_amount_metrics['amt_mean_3d_10m'] == None else user_transaction_amount_metrics['amt_mean_3d_10m']
+# MAGIC     return {'transaction_amount_is_higher_than_average': transaction_request['amt'] > amount_mean}
 # MAGIC ```
 
 # COMMAND ----------
@@ -194,11 +169,12 @@ display(transaction_amount_is_higher_than_3_day_average(amount, historical_metri
 
 # COMMAND ----------
 
-fv = tecton.get_feature_view('transaction_amount_is_higher_than_average')
+ws = tecton.get_workspace('david-0-4-0-dogfood')
+fv = ws.get_feature_view('transaction_amount_is_higher_than_average')
 
 # COMMAND ----------
 
-spine = pd.DataFrame({'timestamp': [datetime(2021, 11, 1), datetime(2021, 11, 2)], 'amount': [5000, 1000], 'user_id': ['C805277159', 'C24965104']})
+spine = pd.DataFrame({'timestamp': [datetime(2022, 5, 5), datetime(2022, 5, 9)], 'amt': [30, 100], 'user_id': ['user_469998441571', 'user_469998441571']})
 display(spine)
 
 # COMMAND ----------
@@ -214,7 +190,7 @@ display(fv.get_historical_features(spine, from_source=False).to_pandas())
 
 # COMMAND ----------
 
-feature_vector = fv.get_online_features({'user_id': 'C805277159'}, request_data={"amount": 5000})
+feature_vector = fv.get_online_features({'user_id': 'user_469998441571'}, request_data={"amt": 10})
 display(feature_vector.to_pandas())
 
 # COMMAND ----------
@@ -229,7 +205,7 @@ display(feature_vector.to_pandas())
 # MAGIC   "params": {
 # MAGIC     "feature_service_name": "fraud_detection_feature_service",
 # MAGIC     "join_key_map": {
-# MAGIC       "user_id": "C805277159"
+# MAGIC       "user_id": "user_469998441571"
 # MAGIC     },
 # MAGIC     "request_context_map": {
 # MAGIC       "amount": 5000

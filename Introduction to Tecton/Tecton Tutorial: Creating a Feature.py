@@ -100,8 +100,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pprint import pprint
 
-ws = tecton.get_workspace('david-0-4-0-dogfood')
-
 # COMMAND ----------
 
 # MAGIC %md
@@ -138,13 +136,13 @@ display(feature_df)
 # MAGIC 
 # MAGIC ```python
 # MAGIC @batch_feature_view(
-# MAGIC     sources=[transactions],
+# MAGIC     sources=[transactions_batch],
 # MAGIC     entities=[user],
-# MAGIC     mode='spark_ssql',
+# MAGIC     mode='spark_sql',
 # MAGIC     online=True,
 # MAGIC     batch_schedule=timedelta(days=1),
 # MAGIC     ttl=timedelta(days=30),
-# MAGIC     feature_start_time=datetime(2021, 5, 20),
+# MAGIC     feature_start_time=datetime(2022, 5, 1),
 # MAGIC     description='Last user transaction amount (batch calculated)'
 # MAGIC )
 # MAGIC def user_last_transaction_amount(transactions):
@@ -168,13 +166,15 @@ display(feature_df)
 
 # COMMAND ----------
 
-ws = tecton.get_workspace('YOUR_NAME') # replace with your workspace name
+YOUR_WORKSPACE_NAME ="PUT_YOUR_WORKSPACE_NAME_HERE"
+
+ws = tecton.get_workspace(YOUR_WORKSPACE_NAME) # replace with your workspace name
 fv = ws.get_feature_view('user_last_transaction_amount')
 
-start_time = datetime.utcnow()-timedelta(days=30)
+start_time = datetime.utcnow()-timedelta(days=10)
 end_time = datetime.utcnow()
 
-fv.run(feature_start_time=start_time, feature_end_time=end_time).to_pandas().head()
+fv.run(start_time=start_time, end_time=end_time).to_pandas().head()
 
 # COMMAND ----------
 
@@ -186,27 +186,27 @@ fv.run(feature_start_time=start_time, feature_end_time=end_time).to_pandas().hea
 # MAGIC 
 # MAGIC For these reasons, we recommend using Tecton’s built-in aggregations whenever possible.
 # MAGIC 
-# MAGIC Time-windowed aggregations can be specified in the Batch Feature View decorator using the `aggregations` and `aggregation_slide_period` parameters.
+# MAGIC Time-windowed aggregations can be specified in the Batch Feature View decorator using the `aggregations` and `aggregation_interval` parameters.
 # MAGIC 
 # MAGIC Tecton expects the provided SQL query to select the raw events (with timestamps) to be aggregated.
 # MAGIC 
 # MAGIC ```python
 # MAGIC @batch_feature_view(
-# MAGIC     sources=[transactions],
+# MAGIC     sources=[transactions_batch],
 # MAGIC     entities=[user],
 # MAGIC     mode='spark_sql',
 # MAGIC     online=True,
-# MAGIC     feature_start_time=datetime(2021, 5, 20),
+# MAGIC     feature_start_time=datetime(2022, 5, 1),
 # MAGIC     description='Max transaction amounts for the user in various time windows',
-# MAGIC     aggregation_slide_period=timedelta(days=1),
-# MAGIC     aggregations=[Aggregation(column='amt', function='max', time_window=timedelta(days=30))],
+# MAGIC     aggregation_interval=timedelta(days=1),
+# MAGIC     aggregations=[Aggregation(column='amt', function='max', time_window=timedelta(days=7))],
 # MAGIC )
 # MAGIC def user_max_transactions(transactions):
 # MAGIC     return f'''
 # MAGIC         SELECT
-# MAGIC             USER_ID,
-# MAGIC             AMT,
-# MAGIC             TIMESTAMP
+# MAGIC             user_id,
+# MAGIC             amt,
+# MAGIC             timestamp
 # MAGIC         FROM
 # MAGIC             {transactions}
 # MAGIC         '''
@@ -225,16 +225,9 @@ fv = ws.get_feature_view('user_max_transactions')
 start_time = datetime.utcnow()-timedelta(days=30)
 end_time = datetime.utcnow()
 
-fv.run(feature_start_time=start_time, feature_end_time=end_time).to_pandas().fillna(0).head()
+fv.run(start_time=start_time, end_time=end_time).to_pandas().fillna(0).head()
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC If you want to add these features to your feature set for your model, simply extend the list of Feature Views in your [Feature Service](feature_repo/feature_services/fraud_detection.py).
-
-# COMMAND ----------
-
-import boto3
-
-client = boto3.client("kinesis", "us-west-2")
-client.describe_stream(StreamName="yan-fos-kinesis-output")

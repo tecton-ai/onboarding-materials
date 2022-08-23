@@ -26,24 +26,24 @@ from datetime import datetime
 # MAGIC 
 # MAGIC The first step of generating training data is to specify which features you'll need.  This is done in Tecton with a concept called a [Feature Service](https://docs.tecton.ai/v2/overviews/framework/feature_services.html), which provides a tool to logically group together the features needed for a model.  In this example, we'll use [this fraud detection feature service:](https://github.com/tecton-ai-ext/tecton-sample-repo/blob/main/fraud/feature_services/fraud_detection.py)
 # MAGIC 
-# MAGIC ```py
+# MAGIC ```python
 # MAGIC fraud_detection_feature_service = FeatureService(
 # MAGIC     name='fraud_detection_feature_service',
 # MAGIC     features=[
-# MAGIC         last_transaction_amount_sql,
-# MAGIC         transaction_amount_is_high,
 # MAGIC         transaction_amount_is_higher_than_average,
 # MAGIC         user_transaction_amount_metrics,
 # MAGIC         user_transaction_counts,
-# MAGIC         user_distinct_merchant_transaction_count_30d
+# MAGIC         user_distinct_merchant_transaction_count_30d,
+# MAGIC         merchant_fraud_rate
 # MAGIC     ]
 # MAGIC )
 # MAGIC ```
-# MAGIC The key component of a feature service is simple -- a list of the feature views you'd like to include.  Here you can see we've included six feature views, which means we should expect to retreive all of the features within these six feature views when we fetch training data.
+# MAGIC The key component of a feature service is simple -- a list of the feature views you'd like to include.  Here you can see we've included five feature views, which means we should expect to retreive all of the features within these five feature views when we fetch training data.
 
 # COMMAND ----------
 
-fs = tecton.get_feature_service('fraud_detection_feature_service')
+ws = tecton.get_workspace('david-0-4-0-dogfood')
+fs = ws.get_feature_service('fraud_detection_feature_service')
 fs.summary()
 
 # COMMAND ----------
@@ -62,16 +62,12 @@ from pyspark.sql import functions as F
 # 1. Fetching a Spark DataFrame of historical labeled transactions
 # 2. Renaming columns to match the expected join keys for the Feature Service
 # 3. Selecting the join keys, request data, event timestamp, and label
-spine = tecton.get_data_source("transactions_batch").get_dataframe().to_spark() \
-                        .withColumnRenamed("nameorig", "user_id") \
-                        .select("user_id", "amount", "timestamp", "isfraud") \
-                        .filter("partition_0 == '2021'") \
-                        .filter("partition_1 == '10'") \
-                        .filter("partition_2 == '08'") \
-                        .filter("type_PAYMENT == 1") \
-                        .orderBy("timestamp", ascending=False) \
+spine = ws.get_data_source("transactions_batch").get_dataframe().to_spark() \
+                        .select("user_id", "merchant", "amt", "timestamp", "is_fraud") \
+                        .filter("partition_0 == '2022'") \
+                        .filter("partition_1 == '05'") \
                         .limit(1000).cache()
-display(training_events)
+display(spine)
 
 # COMMAND ----------
 
@@ -98,7 +94,3 @@ display(training_data.to_spark())
 # MAGIC One other helpful thing -- you never need to worry about different concepts of time in your data when generating training data. For each feature you can speicify the most convenient or correct time for that feature, and Tecton's join logic will make it easy to join all of your features together.
 # MAGIC 
 # MAGIC <img src="https://docs.tecton.ai/v2/assets/docs/examples/point-in-time-correct-joins.png" width="50%" />
-
-# COMMAND ----------
-
-
