@@ -46,7 +46,7 @@ ws = tecton.get_workspace('prod')
 # MAGIC
 # MAGIC A Feature Service is a collection of features available in Tecton tied together for consumption.  Typically mapped 1:1 with a model.  They consist of 1 or more Feature Views.
 # MAGIC Via the SDK, the service is used to create batch data sets as dataframes for batch inference or for point in time correct historic data sets for model training from the offline feature store.  
-# MAGIC Each created feature service is also exposed via a low latency REST API to produce featre vectors in real time with retrievals from the online feature store.
+# MAGIC Each created feature service is also exposed via a low latency REST API to produce feature vectors in real time with retrievals from the online feature store.
 # MAGIC
 # MAGIC In this notebook, we'll be looking at the provided `fraud_detection_feature_service` in the trial tutorial.
 # MAGIC
@@ -56,7 +56,7 @@ ws = tecton.get_workspace('prod')
 # MAGIC
 # MAGIC
 # MAGIC ### Constructing a training data set with historic point in time data retrieval
-# MAGIC Features are retrieved given an entity id to look them up by, and a point in time.  Let's use the SDK to retrieve a historic data set which would be leveraged for model training.  Most features in our feature service are related to the `user` entity, however the 2 on on demand features operate based on the transaction `amount`.  We will need to provide Tecton a user to look up for retrieval, a timestamp to specify at which time in the past we'd like to know those features, and the amount for the on demand features to operate on.  These can be retrieved from the transactions_batch data source in the case of this tutorial.  You might imagine this as your transaction history in a data warehouse.  We will also pull our machine learning target, isfraud.
+# MAGIC Features are retrieved given an entity id to look them up by, and a point in time.  Let's use the SDK to retrieve a historic data set which would be leveraged for model training.  Most features in our feature service are related to the `user` entity, however the 2 on on demand features operate based on the transaction `amount`.  We will need to provide Tecton a user to look up for retrieval, a timestamp to specify at which time in the past we'd like to know those features, and the amount for the on demand features to operate on.  These can be retrieved from the transactions_batch data source in the case of this tutorial.  You might imagine this as your transaction history in a data warehouse.  We will also pull our machine learning target, is_fraud.
 
 # COMMAND ----------
 
@@ -84,7 +84,7 @@ training_events = spark.sql(transactions_query).cache()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC In Tecton, the above data set is called a **spine**.  We will enrich it with historical features by passing it to the `get_historical_features` method for the `fraud_detection_feature_service`.  Note the (optional, default _False_) `from_source` parameter in the call.  Tecton could retrieve this data by going back to source and running the entire pipeline - however it will always be much faster to precompute them and materialize them into the offline feature store.  You can read more about this here: [Am I running GHF with materialized features?](https://docs.tecton.ai/docs/reading-feature-data/how-get-historical-features-works#materialized-or-non-materialized-features)
+# MAGIC In Tecton, the above data set is called a **spine**.  We will enrich it with historical features by passing it to the `get_historical_features` method for the `fraud_detection_feature_service`.  Note the (optional, default _False_) `from_source` parameter in the call.  Tecton could retrieve this data by going back to source and running the entire pipeline - however it will always be much faster to precompute them and materialize them into the offline feature store.  You can read more about this here: [Determining if materialized feature data is being used when reading feature data](https://docs.tecton.ai/docs/materializing-features#determining-if-materialized-feature-data-is-being-used-when-reading-feature-data)
 
 # COMMAND ----------
 
@@ -111,7 +111,7 @@ display(scoring_data)
 
 # MAGIC %md
 # MAGIC ### Real time retrieval from the feature store via API
-# MAGIC Tecton supports a very low latency real time retrieval API using the same Feature Service.  One of the benefits from using the same feature service for both training and scoring consumption is avoiding training/serving skew.  The API retrieves data from the online feature store, currently backed by either DynamoDB or Redis.  Crafting an HTTP POST requrest requires a TECTON_API_KEY - assumed to already be created from the base tutorial.  A new key can be generated from the Tection CLI if required.  
+# MAGIC Tecton supports a very low latency real time retrieval API using the same Feature Service.  One of the benefits from using the same feature service for both training and scoring consumption is avoiding training/serving skew.  The API retrieves data from the online feature store, currently backed by either DynamoDB or Redis.  Crafting an HTTP POST request requires a TECTON_API_KEY - assumed to already be created from the base tutorial.  A new key can be generated from the Tection CLI if required.  
 # MAGIC <pre>
 # MAGIC $ tecton create-api-key
 # MAGIC </pre>
@@ -120,7 +120,7 @@ display(scoring_data)
 # MAGIC
 # MAGIC #### Feature Server Capabilities and SLAs
 # MAGIC
-# MAGIC Note that DynamoDB or Redis can be leveraged for the online feature store; DynamoDB is serverless; Redis on AWS is a service, but does require provisioning.  Provisioned resources are the responsibility of the customer for Redis.  The Feature Service is highly horizontally scalable and has been tested up to _hundreds of thousands_ of Queries Per Second (QPS) with a DynamoDB backend!  Check out our blog post on these benchmarks [here](https://www.tecton.ai/blog/serving-100000-feature-vectors-per-second-with-tecton-and-dynamodb/) - Feature Servers are provisioned on the Tecton side, so please work with us to advise whether your expectations are for 10 QPS or 100,000 QPS.  See the doc for more on [Service Level Objectives](https://docs.tecton.ai/v2/overviews/monitoring_feature_serving_slo.html).  The Tecton Feature Server does more than simply retrieve data from the store as well.  It is also where [On-Demand Feature Views](https://docs.tecton.ai/v2/examples/feature-definition-examples/on-demand-feature-view.html) are executed, operating on data only provided at request time.  Many feature aggregations are also calculated here, as Tecton cleverly performs them on tiles of stored data; see this blog post for more: [Real-Time Aggregation Features for Machine Learning](https://www.tecton.ai/blog/real-time-aggregation-features-for-machine-learning-part-1/).
+# MAGIC Note that DynamoDB or Redis can be leveraged for the online feature store; DynamoDB is serverless; Redis on AWS is a service, but does require provisioning.  Provisioned resources are the responsibility of the customer for Redis.  The Feature Service is highly horizontally scalable and has been tested up to _hundreds of thousands_ of Queries Per Second (QPS) with a DynamoDB backend!  Check out our blog post on these benchmarks [here](https://www.tecton.ai/blog/serving-100000-feature-vectors-per-second-with-tecton-and-dynamodb/) - Feature Servers are provisioned on the Tecton side, so please work with us to advise whether your expectations are for 10 QPS or 100,000 QPS.  See the doc for more on [Service Level Objectives](https://docs.tecton.ai/docs/monitoring/production-slos).  The Tecton Feature Server does more than simply retrieve data from the store as well.  It is also where [On-Demand Feature Views](https://docs.tecton.ai/docs/defining-features/feature-views/on-demand-feature-view/on-demand-feature-view-examples) are executed, operating on data only provided at request time.  Many feature aggregations are also calculated here, as Tecton cleverly performs them on tiles of stored data; see this blog post for more: [Real-Time Aggregation Features for Machine Learning](https://www.tecton.ai/blog/real-time-aggregation-features-for-machine-learning-part-1/).
 
 # COMMAND ----------
 
