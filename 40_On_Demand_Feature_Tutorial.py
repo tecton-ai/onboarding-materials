@@ -33,7 +33,7 @@
 # MAGIC ### At Inference Time
 # MAGIC At inference time, the transformation logic for on-demand feature are run directly on the Tecton-managed serving infrastructure. Tecton has developed an efficient method to quickly invoke python functions at serving time without inducing significant overhead. How this works:
 # MAGIC
-# MAGIC 1. When you invoke [Tecton's Feature Serving API](https://docs.tecton.ai/v2/examples/fetch-real-time-features.html), you'll include any request-time data that needs to be processed in one-or-more on-demand features.
+# MAGIC 1. When you invoke [Tecton's Feature Serving API](https://docs.tecton.ai/docs/reading-feature-data/reading-feature-data-for-inference), you'll include any request-time data that needs to be processed in one-or-more on-demand features.
 # MAGIC 2. While Tecton is looking up any precomputed features, Tecton will also invoke your on-demand transformation logic to compute the on-demand feature on the fly.
 # MAGIC 3. Tecton will return a feature vector that includes both the precomputed and on-demand features that you requested from the API
 # MAGIC
@@ -142,7 +142,7 @@ transaction_amount_is_higher_than_3d_average.run(transaction_request={'amt': 500
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC We can also use get_historical_features to pull some values from the online store.  In this case we'll need to provide 3 values - the user_id, amt, and a timestamp to travel to, even if it is right now.  Keep in mind the data is being retrieved from the offline store!  Although this feature view is available as of every wall clock 10 minutes from a streaming source, the offline store itself is loaded on a daily basis.  Keep this in mind when setting a timestamp.  Eg. for this 3 day feature we can use a timestamp of right now and still get values from days ago.  If this was a 30 minute feature instead of 3 days - then the offline store wouldn't have been loaded yet, and we'd have to travel back further.  Let's make a spine and run ghf on the ODFV to see the values.
+# MAGIC We can also use get_historical_features to pull some values from the online store.  In this case we'll need to provide 3 values - the user_id, amt, and a timestamp to travel to, even if it is right now.  Keep in mind the data is being retrieved from the offline store!  Although this feature view is available as of every wall clock 10 minutes from a streaming source, the offline store itself is loaded on a daily basis.  Keep this in mind when setting a timestamp.  Eg. for this 3 day feature we can use a timestamp of right now and still get values from days ago.  If this was a 30 minute feature instead of 3 days - then the offline store wouldn't have been loaded yet, and we'd have to travel back further.  Let's make a spine and run 'Get Historical Features' (GHF) on the ODFV to see the values.
 
 # COMMAND ----------
 
@@ -168,7 +168,7 @@ display(transaction_amount_is_higher_than_3d_average.get_historical_features(spi
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC While it's great we got the values, it would be nice to see the input from our SFV as well.  How can we see that?  We can construct a feature service on the fly, and use it to see the input data as well.
+# MAGIC While it's great we got the values, it would be nice to see the input from our Streaming Feature View (SFV) as well.  How can we see that?  We can construct a feature service on the fly, and use it to see the input data as well.
 
 # COMMAND ----------
 
